@@ -1,10 +1,9 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-
+const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000;
 require('dotenv').config()
-
 // midleware 
 
 app.use(cors());
@@ -24,6 +23,10 @@ async function run() {
         await client.connect();
         const toolsCollection = client.db('tools').collection('service')
         const orderCollection = client.db('tools').collection('order')
+        const reviewCollection = client.db('tools').collection('reviews')
+        const usersCollection = client.db('tools').collection('users')
+
+
         app.get('/product', async (req, res) => {
             const query = {}
             const product = await toolsCollection.find(query).toArray()
@@ -42,10 +45,13 @@ async function run() {
             const result = await orderCollection.insertOne(order)
             res.send(result)
         })
+
+
         app.get('/myorder', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
             const result = await orderCollection.find(query).toArray();
+
             res.send(result)
         })
 
@@ -55,6 +61,33 @@ async function run() {
             const query = { _id: ObjectId(id) };
             const result = await orderCollection.deleteOne(query)
             res.send(result)
+        })
+
+        // review 
+        app.post('/review', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review)
+            res.send(result)
+        })
+
+        app.get('/review', async (req, res) => {
+            const query = {}
+            const review = await reviewCollection.find(query).toArray()
+            res.send(review)
+        })
+
+        //user 
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user,
+            };
+            const token = jwt.sign({ email: email }, process.env.TOKEN_SECRET, { expiresIn: '1h' })
+            const result = await usersCollection.updateOne(filter, updateDoc, options);
+            res.send({ result, token })
         })
 
 
