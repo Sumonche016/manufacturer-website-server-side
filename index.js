@@ -16,6 +16,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const res = require('express/lib/response');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.z6k7j.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+
+
 function veryfyJWT(req, res, next) {
     const authHeaders = req.headers.authorization;
     if (!authHeaders) {
@@ -65,7 +67,6 @@ async function run() {
         app.get('/myorder', veryfyJWT, async (req, res) => {
             const email = req.query.email;
             const decodedEmail = req.decoded.email
-
             if (email === decodedEmail) {
                 const query = { email: email }
                 const result = await orderCollection.find(query).toArray();
@@ -111,6 +112,12 @@ async function run() {
             const token = jwt.sign({ email: email }, process.env.TOKEN_SECRET, { expiresIn: '1h' })
             const result = await usersCollection.updateOne(filter, updateDoc, options);
             res.send({ result, token })
+        })
+
+
+        app.get('/users', async (req, res) => {
+            const users = await usersCollection.find().toArray()
+            res.send(users)
         })
 
 
