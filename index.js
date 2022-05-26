@@ -16,7 +16,22 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const res = require('express/lib/response');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.z6k7j.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
+function veryfyJWT(req, res, next) {
+    const authHeaders = req.headers.authorization;
+    if (!authHeaders) {
+        return res.status(401).send({ message: 'unauthorized access' })
+    }
+    const token = authHeaders.split(' ')[1]
+    jwt.verify(token, process.env.TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ messege: 'forbidden acess' })
+        }
 
+        req.decoded = decoded;
+        next()
+    });
+
+}
 
 async function run() {
     try {
@@ -47,12 +62,20 @@ async function run() {
         })
 
 
-        app.get('/myorder', async (req, res) => {
+        app.get('/myorder', veryfyJWT, async (req, res) => {
             const email = req.query.email;
-            const query = { email: email }
-            const result = await orderCollection.find(query).toArray();
+            const decodedEmail = req.decoded.email
 
-            res.send(result)
+            if (email === decodedEmail) {
+                const query = { email: email }
+                const result = await orderCollection.find(query).toArray();
+                return res.send(result)
+            } else {
+                return res.status(403).send({ messege: 'forbidden acess' })
+
+            }
+
+
         })
 
         // detete api 
