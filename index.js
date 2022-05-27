@@ -42,6 +42,7 @@ async function run() {
         const orderCollection = client.db('tools').collection('order')
         const reviewCollection = client.db('tools').collection('reviews')
         const usersCollection = client.db('tools').collection('users')
+        const profileCollection = client.db('tools').collection('profile')
 
 
         app.get('/product', async (req, res) => {
@@ -75,7 +76,6 @@ async function run() {
                 return res.status(403).send({ messege: 'forbidden acess' })
 
             }
-
 
         })
 
@@ -146,6 +146,42 @@ async function run() {
         app.get('/users', veryfyJWT, async (req, res) => {
             const users = await usersCollection.find().toArray()
             res.send(users)
+        })
+
+
+
+        app.get('/product', async (req, res) => {
+            const query = {}
+            const product = await toolsCollection.find(query).toArray()
+            res.send(product)
+        })
+
+
+        // profile 
+        app.get('/profile', async (req, res) => {
+            const query = {}
+            const result = await profileCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.get('/profile/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await profileCollection.findOne({ email: email })
+            res.send(user)
+        })
+
+
+
+        app.put('/myprofile/:email', async (req, res) => {
+            const email = req.params.email;
+            const profile = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: profile,
+            }
+            const result = await profileCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
         })
 
 
