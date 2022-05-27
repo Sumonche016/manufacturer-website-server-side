@@ -100,6 +100,17 @@ async function run() {
             res.send(review)
         })
 
+        // admin 
+        app.put('/user/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result)
+        })
+
         //user 
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -115,7 +126,7 @@ async function run() {
         })
 
 
-        app.get('/users', async (req, res) => {
+        app.get('/users', veryfyJWT, async (req, res) => {
             const users = await usersCollection.find().toArray()
             res.send(users)
         })
