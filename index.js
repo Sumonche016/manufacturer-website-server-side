@@ -101,14 +101,31 @@ async function run() {
         })
 
         // admin 
-        app.put('/user/admin/:email', async (req, res) => {
+        app.put('/user/admin/:email', veryfyJWT, async (req, res) => {
             const email = req.params.email;
             const filter = { email: email };
-            const updateDoc = {
-                $set: { role: 'admin' },
-            };
-            const result = await usersCollection.updateOne(filter, updateDoc);
-            res.send(result)
+            const requester = req.decoded.email;
+            const requestAccount = await usersCollection.findOne({ email: requester })
+
+            if (requestAccount.role === 'admin') {
+                const updateDoc = {
+                    $set: { role: 'admin' },
+                };
+                const result = await usersCollection.updateOne(filter, updateDoc);
+                res.send(result)
+            } else {
+                return res.status(403).send({ messege: 'forbidden acess' })
+
+            }
+        })
+
+
+
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await usersCollection.findOne({ email: email })
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin })
         })
 
         //user 
