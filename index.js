@@ -80,9 +80,9 @@ async function run() {
         })
 
         // detete api 
-        app.delete('/myorder/:id', async (req, res) => {
-            const id = req.params.id
-            const query = { _id: ObjectId(id) };
+        app.delete('/myorder/', async (req, res) => {
+            const email = req.query.email
+            const query = { email: email }
             const result = await orderCollection.deleteOne(query)
             res.send(result)
         })
@@ -181,6 +181,14 @@ async function run() {
                 $set: profile,
             }
             const result = await profileCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
+        })
+
+
+        //add product
+        app.post('/addproduct', async (req, res) => {
+            const product = req.body;
+            const result = await toolsCollection.insertOne(product)
             res.send(result)
         })
 
