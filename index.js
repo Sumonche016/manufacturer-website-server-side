@@ -57,6 +57,8 @@ async function run() {
             const result = await toolsCollection.findOne(query)
             res.send(result)
         })
+
+
         //  my order 
         app.post('/myorder', async (req, res) => {
             const order = req.body;
@@ -189,6 +191,15 @@ async function run() {
         app.post('/addproduct', async (req, res) => {
             const product = req.body;
             const result = await toolsCollection.insertOne(product)
+            res.send(result)
+        })
+
+
+        // prodyct delete 
+        app.delete('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await toolsCollection.deleteOne(query)
             res.send(result)
         })
 
